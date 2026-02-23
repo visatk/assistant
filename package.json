@@ -1,6 +1,6 @@
 {
-  "name": "@cloudflare/agents-forever-chat-example",
-  "description": "Durable AI chat with keepAlive — streaming that survives DO eviction",
+  "name": "chat",
+  "description": "Durable AI Assistant",
   "private": true,
   "type": "module",
   "version": "0.0.0",
@@ -10,11 +10,11 @@
     "types": "wrangler types env.d.ts --include-runtime false"
   },
   "dependencies": {
-    "@cloudflare/agents-ui": "*",
-    "@cloudflare/ai-chat": "*",
+    "@cloudflare/agents-ui": "latest",
+    "@cloudflare/ai-chat": "latest",
     "@cloudflare/kumo": "^1.7.0",
     "@phosphor-icons/react": "^2.1.10",
-    "agents": "*"
+    "agents": "latest"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4",
