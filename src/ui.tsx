@@ -14,17 +14,17 @@ const statusConfig: Record<
 > = {
   connecting: {
     label: "Connecting...",
-    dotClass: "bg-yellow-500",
+    dotClass: "bg-kumo-warning animate-pulse",
     textClass: "text-kumo-warning"
   },
   connected: {
     label: "Connected",
-    dotClass: "bg-green-500",
+    dotClass: "bg-kumo-success shadow-[0_0_8px_rgba(22,163,74,0.6)]",
     textClass: "text-kumo-success"
   },
   disconnected: {
     label: "Disconnected",
-    dotClass: "bg-red-500",
+    dotClass: "bg-kumo-danger",
     textClass: "text-kumo-danger"
   }
 };
@@ -32,9 +32,9 @@ const statusConfig: Record<
 export function ConnectionIndicator({ status }: ConnectionStatusProps) {
   const { label, dotClass, textClass } = statusConfig[status];
   return (
-    <div className="flex items-center gap-2" role="status" aria-live="polite">
-      <span className={`size-2 rounded-full ${dotClass}`} aria-hidden="true" />
-      <span className={textClass}>{label}</span>
+    <div className="flex items-center gap-2 rounded-full border border-kumo-line bg-kumo-recessed px-2 py-1 md:px-3 md:py-1.5" role="status" aria-live="polite">
+      <span className={`size-2.5 rounded-full ${dotClass}`} aria-hidden="true" />
+      <span className={`${textClass} hidden text-xs font-semibold sm:inline-block`}>{label}</span>
     </div>
   );
 }
@@ -50,11 +50,11 @@ export function ModeToggle() {
 
   const icon =
     mode === "light" ? (
-      <SunIcon size={16} />
+      <SunIcon size={18} weight="fill" />
     ) : mode === "dark" ? (
-      <MoonIcon size={16} />
+      <MoonIcon size={18} weight="fill" />
     ) : (
-      <MonitorIcon size={16} />
+      <MonitorIcon size={18} weight="fill" />
     );
 
   const label =
@@ -66,8 +66,9 @@ export function ModeToggle() {
       icon={icon}
       onClick={cycle}
       title={`Theme: ${label}`}
+      className="px-2"
     >
-      {label}
+      <span className="hidden sm:inline-block">{label}</span>
     </Button>
   );
 }
