@@ -1,15 +1,13 @@
 import { routeAgentRequest } from "agents";
 import { AIChatAgent } from "@cloudflare/ai-chat";
 import { withDurableChat } from "@cloudflare/ai-chat/experimental/forever";
-import {
-  streamText,
-  convertToModelMessages,
-  pruneMessages,
-  tool,
-  stepCountIs
-} from "ai";
+import { streamText, convertToModelMessages, pruneMessages, tool, stepCountIs } from "ai";
 import { createWorkersAI } from "workers-ai-provider";
 import { z } from "zod";
+
+export interface Env {
+  AI: unknown;
+}
 
 const DurableChatAgent = withDurableChat(AIChatAgent);
 
@@ -20,13 +18,12 @@ export class ForeverChatAgent extends DurableChatAgent<Env> {
     const workersai = createWorkersAI({ binding: this.env.AI });
 
     const result = streamText({
-      model: workersai("@cf/meta/llama-3.1-8b-instruct"),
+      model: workersai("@cf/zai-org/glm-4.7-flash"),
       system:
-        "You are a helpful assistant running as a durable agent. " +
-        "Your streaming connection is kept alive via keepAlive(), " +
-        "so even long responses won't be interrupted by idle timeouts. " +
-        "You can check the weather and perform calculations. " +
-        "For calculations with large numbers (over 1000), you need user approval first.",
+        "You are an advanced enterprise AI assistant operating directly on Cloudflare's V8 isolates. " +
+        "Your streaming connection is kept alive via keepAlive(), ensuring seamless execution for complex tasks. " +
+        "Your responses must be highly accurate, concise, and professional. " +
+        "You have access to live tools for real-time data processing and verified calculations.",
       messages: pruneMessages({
         messages: await convertToModelMessages(this.messages),
         toolCalls: "before-last-2-messages",
@@ -34,42 +31,47 @@ export class ForeverChatAgent extends DurableChatAgent<Env> {
       }),
       tools: {
         getWeather: tool({
-          description: "Get the current weather for a city",
+          description: "Get the real-time weather conditions for a specified city using external network APIs.",
           inputSchema: z.object({
             city: z.string().describe("City name")
           }),
           execute: async ({ city }: { city: string }) => {
-            const conditions = ["sunny", "cloudy", "rainy", "snowy"];
-            const temp = Math.floor(Math.random() * 30) + 5;
-            return {
-              city,
-              temperature: temp,
-              condition: conditions[Math.floor(Math.random() * conditions.length)],
-              unit: "celsius"
-            };
+            try {
+              const res = await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`);
+              if (!res.ok) {
+                return { error: `HTTP error: ${res.status} resolving external weather endpoint.` };
+              }
+              const data = await res.json() as any;
+              const current = data.current_condition[0];
+              return {
+                city,
+                temperature: Number(current.temp_C),
+                condition: current.weatherDesc[0].value,
+                humidity: `${current.humidity}%`,
+                wind: `${current.windspeedKmph} km/h`,
+                unit: "celsius"
+              };
+            } catch (err) {
+              return { error: "Failed to fetch remote weather data. Network unreachable." };
+            }
           }
         }),
 
         getUserTimezone: tool({
-          description:
-            "Get the user's timezone from their browser. Use this when you need to know the user's local time.",
+          description: "Retrieve the local timezone of the user to provide context-aware temporal responses.",
           inputSchema: z.object({})
         }),
 
         calculate: tool({
-          description:
-            "Perform a math calculation with two numbers. Requires approval for large numbers.",
+          description: "Perform precise arithmetic calculations. Requires explicit user approval for any operand exceeding 1000.",
           inputSchema: z.object({
-            a: z.number().describe("First number"),
-            b: z.number().describe("Second number"),
-            operator: z
-              .enum(["+", "-", "*", "/", "%"])
-              .describe("Arithmetic operator")
+            a: z.number().describe("First operand"),
+            b: z.number().describe("Second operand"),
+            operator: z.enum(["+", "-", "*", "/", "%"]).describe("Mathematical operator")
           }),
-          needsApproval: async ({ a, b }: { a: number; b: number }) =>
-            Math.abs(a) > 1000 || Math.abs(b) > 1000,
+          needsApproval: async ({ a, b }: { a: number; b: number }) => Math.abs(a) > 1000 || Math.abs(b) > 1000,
           execute: async ({ a, b, operator }: { a: number; b: number; operator: "+" | "-" | "*" | "/" | "%" }) => {
-            const ops: Record<"+" | "-" | "*" | "/" | "%", (x: number, y: number) => number> = {
+            const operations: Record<"+" | "-" | "*" | "/" | "%", (x: number, y: number) => number> = {
               "+": (x, y) => x + y,
               "-": (x, y) => x - y,
               "*": (x, y) => x * y,
@@ -77,12 +79,11 @@ export class ForeverChatAgent extends DurableChatAgent<Env> {
               "%": (x, y) => x % y
             };
             if (operator === "/" && b === 0) {
-              return { error: "Division by zero" };
+              return { error: "Division by zero is mathematically undefined." };
             }
-            const fn = ops[operator];
             return {
               expression: `${a} ${operator} ${b}`,
-              result: fn ? fn(a, b) : null
+              result: operations[operator](a, b)
             };
           }
         })
