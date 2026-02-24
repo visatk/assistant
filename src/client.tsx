@@ -80,40 +80,51 @@ function Chat() {
   }, [input, isStreaming, sendMessage]);
 
   return (
-    <div className="flex h-screen flex-col bg-kumo-elevated">
-      <header className="border-b border-kumo-line bg-kumo-base px-5 py-4">
-        <div className="mx-auto flex max-w-3xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h1 className="text-lg font-semibold text-kumo-default">
+    <div className="flex h-[100dvh] flex-col bg-kumo-elevated selection:bg-kumo-brand selection:text-white">
+      <header className="sticky top-0 z-10 border-b border-kumo-line bg-kumo-base/90 px-4 py-3 backdrop-blur-md md:px-6 md:py-4">
+        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
+            <h1 className="text-base font-bold tracking-tight text-kumo-default md:text-xl">
               Forever Chat
             </h1>
-            <Badge variant="primary">
-              <InfinityIcon size={12} weight="bold" className="mr-1" />
+            <Badge variant="primary" className="hidden items-center sm:inline-flex">
+              <InfinityIcon size={14} weight="bold" className="mr-1.5" />
               Durable Streaming
             </Badge>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             <ConnectionIndicator status={connectionStatus} />
             <ModeToggle />
             <Button
               variant="secondary"
               icon={<TrashIcon size={16} />}
               onClick={clearHistory}
+              title="Clear Chat"
+              className="hidden sm:inline-flex"
             >
               Clear
             </Button>
+            <Button
+              variant="secondary"
+              icon={<TrashIcon size={18} />}
+              onClick={clearHistory}
+              title="Clear Chat"
+              className="px-2 sm:hidden"
+            />
           </div>
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl space-y-5 px-5 py-6">
+      <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-6 md:px-6">
+        <div className="mx-auto max-w-4xl space-y-6">
           {messages.length === 0 && (
-            <Empty
-              icon={<InfinityIcon size={32} />}
-              title="Durable AI Chat"
-              description="This chat uses keepAlive — the DO stays alive during streaming, preventing idle eviction during long LLM responses."
-            />
+            <div className="mt-8 md:mt-16">
+              <Empty
+                icon={<InfinityIcon size={40} className="text-kumo-brand" />}
+                title="Durable Edge Intelligence"
+                description="Experience persistent, serverless inference via Cloudflare Workers AI. Powered by GLM-4.7-Flash models with deep tool execution."
+              />
+            </div>
           )}
 
           {messages.map((message, index) => {
@@ -124,17 +135,17 @@ function Chat() {
               <div key={message.id} className="space-y-2">
                 {isUser ? (
                   <div className="flex justify-end">
-                    <div className="max-w-[85%] rounded-2xl rounded-br-md bg-kumo-contrast px-4 py-2.5 leading-relaxed text-kumo-inverse">
+                    <div className="max-w-[92%] rounded-2xl rounded-tr-sm bg-kumo-brand px-4 py-3 text-sm leading-relaxed text-white shadow-sm md:max-w-[80%] md:text-base">
                       {getMessageText(message)}
                     </div>
                   </div>
                 ) : (
                   <div className="flex justify-start">
-                    <div className="max-w-[85%] rounded-2xl rounded-bl-md bg-kumo-base px-4 py-2.5 leading-relaxed text-kumo-default">
-                      <div className="whitespace-pre-wrap">
+                    <div className="max-w-[92%] rounded-2xl rounded-tl-sm border border-kumo-line bg-kumo-base px-4 py-3 text-sm leading-relaxed text-kumo-default shadow-sm md:max-w-[80%] md:text-base">
+                      <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap break-words md:prose-base">
                         {getMessageText(message)}
                         {isLastAssistant && isStreaming && (
-                          <span className="ml-0.5 inline-block h-[1em] w-0.5 animate-blink-cursor bg-kumo-brand align-text-bottom" />
+                          <span className="ml-1 inline-block h-4 w-1.5 animate-pulse bg-kumo-brand align-middle" />
                         )}
                       </div>
                     </div>
@@ -150,19 +161,17 @@ function Chat() {
                     if (part.state === "output-available") {
                       return (
                         <div key={part.toolCallId} className="flex justify-start">
-                          <Surface className="max-w-[85%] rounded-xl px-4 py-2.5 ring ring-kumo-line">
-                            <div className="mb-1 flex items-center gap-2">
-                              <GearIcon size={14} className="text-kumo-inactive" />
-                              <Text size="xs" variant="secondary" bold>
+                          <Surface className="max-w-[92%] overflow-x-auto rounded-xl border-l-2 border-kumo-success px-4 py-3 shadow-sm ring-1 ring-kumo-line md:max-w-[80%]">
+                            <div className="mb-1.5 flex items-center gap-2">
+                              <GearIcon size={14} className="text-kumo-success" />
+                              <Text size="xs" variant="secondary" bold className="uppercase tracking-wider">
                                 {toolName}
                               </Text>
-                              <Badge variant="secondary">Done</Badge>
+                              <Badge variant="secondary" className="text-[10px]">Complete</Badge>
                             </div>
-                            <div className="font-mono">
-                              <Text size="xs" variant="secondary">
-                                {JSON.stringify(part.output, null, 2)}
-                              </Text>
-                            </div>
+                            <pre className="font-mono text-[11px] text-kumo-subtle md:text-xs">
+                              {JSON.stringify(part.output, null, 2)}
+                            </pre>
                           </Surface>
                         </div>
                       );
@@ -172,42 +181,44 @@ function Chat() {
                       const approvalId = (part.approval as { id?: string })?.id;
                       return (
                         <div key={part.toolCallId} className="flex justify-start">
-                          <Surface className="max-w-[85%] rounded-xl px-4 py-3 ring-2 ring-kumo-warning">
+                          <Surface className="max-w-[92%] rounded-xl border-l-2 border-kumo-warning px-4 py-3 shadow-sm ring-1 ring-kumo-warning/50 md:max-w-[80%]">
                             <div className="mb-2 flex items-center gap-2">
                               <GearIcon size={14} className="text-kumo-warning" />
-                              <Text size="sm" bold>
-                                Approval needed: {toolName}
+                              <Text size="sm" bold className="text-kumo-warning">
+                                Execution Approval Required: {toolName}
                               </Text>
                             </div>
-                            <div className="mb-3 font-mono">
-                              <Text size="xs" variant="secondary">
+                            <div className="mb-4 overflow-x-auto rounded-md bg-kumo-recessed p-2">
+                              <pre className="font-mono text-[11px] text-kumo-subtle md:text-xs">
                                 {JSON.stringify(part.input, null, 2)}
-                              </Text>
+                              </pre>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex flex-wrap gap-2">
                               <Button
                                 variant="primary"
                                 size="sm"
-                                icon={<CheckCircleIcon size={14} />}
+                                icon={<CheckCircleIcon size={16} />}
                                 onClick={() => {
                                   if (approvalId) {
                                     addToolApprovalResponse({ id: approvalId, approved: true });
                                   }
                                 }}
+                                className="flex-1 sm:flex-none"
                               >
-                                Approve
+                                Authorize
                               </Button>
                               <Button
                                 variant="secondary"
                                 size="sm"
-                                icon={<XCircleIcon size={14} />}
+                                icon={<XCircleIcon size={16} />}
                                 onClick={() => {
                                   if (approvalId) {
                                     addToolApprovalResponse({ id: approvalId, approved: false });
                                   }
                                 }}
+                                className="flex-1 sm:flex-none"
                               >
-                                Reject
+                                Deny
                               </Button>
                             </div>
                           </Surface>
@@ -218,11 +229,11 @@ function Chat() {
                     if (part.state === "input-available" || part.state === "input-streaming") {
                       return (
                         <div key={part.toolCallId} className="flex justify-start">
-                          <Surface className="max-w-[85%] rounded-xl px-4 py-2.5 ring ring-kumo-line">
+                          <Surface className="max-w-[92%] rounded-xl border-l-2 border-kumo-info px-4 py-2.5 shadow-sm ring-1 ring-kumo-line md:max-w-[80%]">
                             <div className="flex items-center gap-2">
-                              <GearIcon size={14} className="animate-spin text-kumo-inactive" />
-                              <Text size="xs" variant="secondary">
-                                Running {toolName}...
+                              <GearIcon size={14} className="animate-spin text-kumo-info" />
+                              <Text size="xs" variant="secondary" className="font-medium uppercase tracking-wider">
+                                Executing {toolName}...
                               </Text>
                             </div>
                           </Surface>
@@ -240,15 +251,15 @@ function Chat() {
         </div>
       </div>
 
-      <div className="border-t border-kumo-line bg-kumo-base">
+      <div className="bg-kumo-base pb-4 pt-2 md:pb-6">
         <form
           onSubmit={(e) => {
             e.preventDefault();
             send();
           }}
-          className="mx-auto max-w-3xl px-5 py-4"
+          className="mx-auto max-w-4xl px-4 py-3 md:px-6 md:py-4"
         >
-          <div className="flex items-end gap-3 rounded-xl border border-kumo-line bg-kumo-base p-3 shadow-sm transition-shadow focus-within:border-transparent focus-within:ring-2 focus-within:ring-kumo-ring">
+          <div className="flex items-end gap-2 rounded-2xl border border-kumo-line bg-kumo-recessed p-2 shadow-inner transition-colors focus-within:border-kumo-brand focus-within:bg-kumo-base md:gap-3 md:p-3">
             <InputArea
               value={input}
               onValueChange={setInput}
@@ -258,21 +269,27 @@ function Chat() {
                   send();
                 }
               }}
-              placeholder="Try: What's the weather in Paris?"
+              placeholder="Interact with the edge..."
               disabled={!isConnected || isStreaming}
-              rows={2}
-              className="flex-1 !bg-transparent !shadow-none !outline-none !ring-0 focus:!ring-0"
+              rows={1}
+              className="flex-1 resize-none bg-transparent px-2 py-1.5 text-sm outline-none ring-0 focus:ring-0 md:text-base"
+              style={{ minHeight: "44px", maxHeight: "150px" }}
             />
             <Button
               type="submit"
               variant="primary"
               shape="square"
-              aria-label="Send message"
+              aria-label="Send transmission"
               disabled={!input.trim() || !isConnected || isStreaming}
-              icon={<PaperPlaneRightIcon size={18} />}
+              icon={<PaperPlaneRightIcon size={20} weight="fill" />}
               loading={isStreaming}
-              className="mb-0.5"
+              className="h-11 w-11 shrink-0 rounded-xl"
             />
+          </div>
+          <div className="mt-2 text-center">
+            <Text size="xs" variant="secondary" className="opacity-75">
+              Powered by Cloudflare Workers AI & GLM-4.7-Flash
+            </Text>
           </div>
         </form>
       </div>
@@ -284,8 +301,11 @@ export default function App() {
   return (
     <Suspense
       fallback={
-        <div className="flex h-screen items-center justify-center text-kumo-inactive">
-          Loading...
+        <div className="flex h-[100dvh] items-center justify-center bg-kumo-elevated text-kumo-inactive">
+          <div className="flex flex-col items-center gap-3">
+            <div className="size-6 animate-spin rounded-full border-2 border-kumo-brand border-t-transparent" />
+            <span className="text-sm font-medium tracking-wide">Initializing Edge Environment...</span>
+          </div>
         </div>
       }
     >
