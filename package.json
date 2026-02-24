@@ -12,22 +12,23 @@
   "dependencies": {
     "workers-ai-provider": "^3.1.2",
     "@cloudflare/ai-chat": "latest",
-    "@cloudflare/kumo": "^1.7.0",
-    "@phosphor-icons/react": "^2.1.10",
+    "@cloudflare/kumo": "latest",
+    "@phosphor-icons/react": "latest",
     "agents": "latest",
     "ai": "latest",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "@tailwindcss/vite": "^4.0.0",
+    "react": "latest",
+    "tailwindcss": "^4.2.0",
+    "react-dom": "latest",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "latest",
-    "@tailwindcss/vite": "^4.0.0",
-    "@types/react": "^18.3.3",
+    "@types/node": "latest",
+    "@types/react": "latest",
     "@vitejs/plugin-react": "latest",
-    "@types/react-dom": "^18.3.0",
-    "tailwindcss": "^4.2.0",
-    "typescript": "^5.5.0",
+    "@types/react-dom": "latest",
+    "typescript": "latest",
     "vite": "latest",
     "wrangler": "latest"
   }
