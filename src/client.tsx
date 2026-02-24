@@ -34,8 +34,7 @@ function getMessageText(message: UIMessage): string {
 }
 
 function Chat() {
-  const [connectionStatus, setConnectionStatus] =
-    useState<ConnectionStatus>("connecting");
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("connecting");
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -43,10 +42,7 @@ function Chat() {
     agent: "ForeverChatAgent",
     onOpen: useCallback(() => setConnectionStatus("connected"), []),
     onClose: useCallback(() => setConnectionStatus("disconnected"), []),
-    onError: useCallback(
-      (error: Event) => console.error("WebSocket error:", error),
-      []
-    )
+    onError: useCallback((error: Event) => console.error("WebSocket error:", error), [])
   });
 
   const {
@@ -90,7 +86,6 @@ function Chat() {
 
   return (
     <div className="flex h-screen flex-col bg-kumo-elevated">
-      {/* Header */}
       <header className="border-b border-kumo-line bg-kumo-base px-5 py-4">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
           <div className="flex items-center gap-3">
@@ -116,7 +111,6 @@ function Chat() {
         </div>
       </header>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-3xl space-y-5 px-5 py-6">
           {messages.length === 0 && (
@@ -129,8 +123,7 @@ function Chat() {
 
           {messages.map((message, index) => {
             const isUser = message.role === "user";
-            const isLastAssistant =
-              message.role === "assistant" && index === messages.length - 1;
+            const isLastAssistant = message.role === "assistant" && index === messages.length - 1;
 
             return (
               <div key={message.id} className="space-y-2">
@@ -161,16 +154,10 @@ function Chat() {
 
                     if (part.state === "output-available") {
                       return (
-                        <div
-                          key={part.toolCallId}
-                          className="flex justify-start"
-                        >
+                        <div key={part.toolCallId} className="flex justify-start">
                           <Surface className="max-w-[85%] rounded-xl px-4 py-2.5 ring ring-kumo-line">
                             <div className="mb-1 flex items-center gap-2">
-                              <GearIcon
-                                size={14}
-                                className="text-kumo-inactive"
-                              />
+                              <GearIcon size={14} className="text-kumo-inactive" />
                               <Text size="xs" variant="secondary" bold>
                                 {toolName}
                               </Text>
@@ -186,22 +173,13 @@ function Chat() {
                       );
                     }
 
-                    if (
-                      "approval" in part &&
-                      part.state === "approval-requested"
-                    ) {
+                    if ("approval" in part && part.state === "approval-requested") {
                       const approvalId = (part.approval as { id?: string })?.id;
                       return (
-                        <div
-                          key={part.toolCallId}
-                          className="flex justify-start"
-                        >
+                        <div key={part.toolCallId} className="flex justify-start">
                           <Surface className="max-w-[85%] rounded-xl px-4 py-3 ring-2 ring-kumo-warning">
                             <div className="mb-2 flex items-center gap-2">
-                              <GearIcon
-                                size={14}
-                                className="text-kumo-warning"
-                              />
+                              <GearIcon size={14} className="text-kumo-warning" />
                               <Text size="sm" bold>
                                 Approval needed: {toolName}
                               </Text>
@@ -218,10 +196,7 @@ function Chat() {
                                 icon={<CheckCircleIcon size={14} />}
                                 onClick={() => {
                                   if (approvalId) {
-                                    addToolApprovalResponse({
-                                      id: approvalId,
-                                      approved: true
-                                    });
+                                    addToolApprovalResponse({ id: approvalId, approved: true });
                                   }
                                 }}
                               >
@@ -233,10 +208,7 @@ function Chat() {
                                 icon={<XCircleIcon size={14} />}
                                 onClick={() => {
                                   if (approvalId) {
-                                    addToolApprovalResponse({
-                                      id: approvalId,
-                                      approved: false
-                                    });
+                                    addToolApprovalResponse({ id: approvalId, approved: false });
                                   }
                                 }}
                               >
@@ -248,21 +220,12 @@ function Chat() {
                       );
                     }
 
-                    if (
-                      part.state === "input-available" ||
-                      part.state === "input-streaming"
-                    ) {
+                    if (part.state === "input-available" || part.state === "input-streaming") {
                       return (
-                        <div
-                          key={part.toolCallId}
-                          className="flex justify-start"
-                        >
+                        <div key={part.toolCallId} className="flex justify-start">
                           <Surface className="max-w-[85%] rounded-xl px-4 py-2.5 ring ring-kumo-line">
                             <div className="flex items-center gap-2">
-                              <GearIcon
-                                size={14}
-                                className="animate-spin text-kumo-inactive"
-                              />
+                              <GearIcon size={14} className="animate-spin text-kumo-inactive" />
                               <Text size="xs" variant="secondary">
                                 Running {toolName}...
                               </Text>
@@ -282,7 +245,6 @@ function Chat() {
         </div>
       </div>
 
-      {/* Input */}
       <div className="border-t border-kumo-line bg-kumo-base">
         <form
           onSubmit={(e) => {
