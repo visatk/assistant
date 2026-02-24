@@ -11,5 +11,5 @@
     "jsx": "react-jsx",
     "types": ["./worker-configuration.d.ts", "vite/client"]
   },
-  "include": ["src", "worker-configuration.d.ts"]
+  "include": ["src"]
 }
