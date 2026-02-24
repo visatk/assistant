@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "workers-ai-provider": "^3.1.2",
-    "@cloudflare/agents-ui": "latest",
     "@cloudflare/ai-chat": "latest",
     "@cloudflare/kumo": "^1.7.0",
     "@phosphor-icons/react": "^2.1.10",
