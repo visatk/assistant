@@ -8,7 +8,7 @@ import {
   tool,
   stepCountIs
 } from "ai";
-import { createWorkersAI } from "@ai-sdk/cloudflare";
+import { createWorkersAI } from "workers-ai-provider";
 import { z } from "zod";
 
 const DurableChatAgent = withDurableChat(AIChatAgent);
