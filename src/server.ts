@@ -1,13 +1,3 @@
-/**
- * Forever Chat — Durable AI streaming that survives DO eviction.
- *
- * Uses the withDurableChat mixin to add keepAlive during streaming.
- * The DO stays alive while the LLM generates, preventing idle eviction.
- *
- * This is the same as the ai-chat example, but extends
- * withDurableChat(AIChatAgent) instead of AIChatAgent directly.
- */
-import { createWorkersAI } from "workers-ai-provider";
 import { routeAgentRequest } from "agents";
 import { AIChatAgent } from "@cloudflare/ai-chat";
 import { withDurableChat } from "@cloudflare/ai-chat/experimental/forever";
@@ -18,19 +8,19 @@ import {
   tool,
   stepCountIs
 } from "ai";
+import { createWorkersAI } from "@ai-sdk/cloudflare";
 import { z } from "zod";
 
-// Apply the durable chat mixin
 const DurableChatAgent = withDurableChat(AIChatAgent);
 
 export class ForeverChatAgent extends DurableChatAgent<Env> {
-  maxPersistedMessages = 200;
+  public maxPersistedMessages = 200;
 
-  async onChatMessage() {
+  async onChatMessage(): Promise<Response> {
     const workersai = createWorkersAI({ binding: this.env.AI });
 
     const result = streamText({
-      model: workersai("@cf/zai-org/glm-4.7-flash"),
+      model: workersai("@cf/meta/llama-3.1-8b-instruct"),
       system:
         "You are a helpful assistant running as a durable agent. " +
         "Your streaming connection is kept alive via keepAlive(), " +
@@ -48,14 +38,13 @@ export class ForeverChatAgent extends DurableChatAgent<Env> {
           inputSchema: z.object({
             city: z.string().describe("City name")
           }),
-          execute: async ({ city }) => {
+          execute: async ({ city }: { city: string }) => {
             const conditions = ["sunny", "cloudy", "rainy", "snowy"];
             const temp = Math.floor(Math.random() * 30) + 5;
             return {
               city,
               temperature: temp,
-              condition:
-                conditions[Math.floor(Math.random() * conditions.length)],
+              condition: conditions[Math.floor(Math.random() * conditions.length)],
               unit: "celsius"
             };
           }
@@ -77,10 +66,10 @@ export class ForeverChatAgent extends DurableChatAgent<Env> {
               .enum(["+", "-", "*", "/", "%"])
               .describe("Arithmetic operator")
           }),
-          needsApproval: async ({ a, b }) =>
+          needsApproval: async ({ a, b }: { a: number; b: number }) =>
             Math.abs(a) > 1000 || Math.abs(b) > 1000,
-          execute: async ({ a, b, operator }) => {
-            const ops: Record<string, (x: number, y: number) => number> = {
+          execute: async ({ a, b, operator }: { a: number; b: number; operator: "+" | "-" | "*" | "/" | "%" }) => {
+            const ops: Record<"+" | "-" | "*" | "/" | "%", (x: number, y: number) => number> = {
               "+": (x, y) => x + y,
               "-": (x, y) => x - y,
               "*": (x, y) => x * y,
@@ -90,9 +79,10 @@ export class ForeverChatAgent extends DurableChatAgent<Env> {
             if (operator === "/" && b === 0) {
               return { error: "Division by zero" };
             }
+            const fn = ops[operator];
             return {
               expression: `${a} ${operator} ${b}`,
-              result: ops[operator](a, b)
+              result: fn ? fn(a, b) : null
             };
           }
         })
@@ -100,15 +90,13 @@ export class ForeverChatAgent extends DurableChatAgent<Env> {
       stopWhen: stepCountIs(5)
     });
 
-    return result.toUIMessageStreamResponse();
+    return result.toDataStreamResponse();
   }
 }
 
 export default {
-  async fetch(request: Request, env: Env) {
-    return (
-      (await routeAgentRequest(request, env)) ||
-      new Response("Not found", { status: 404 })
-    );
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const response = await routeAgentRequest(request, env);
+    return response || new Response("Not found", { status: 404 });
   }
 } satisfies ExportedHandler<Env>;
