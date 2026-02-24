@@ -12,12 +12,6 @@ import {
   Text
 } from "@cloudflare/kumo";
 import {
-  ConnectionIndicator,
-  ModeToggle,
-  PoweredByAgents,
-  type ConnectionStatus
-} from "@cloudflare/agents-ui";
-import {
   PaperPlaneRightIcon,
   TrashIcon,
   CheckCircleIcon,
@@ -25,6 +19,7 @@ import {
   GearIcon,
   InfinityIcon
 } from "@phosphor-icons/react";
+import { ConnectionIndicator, ModeToggle, type ConnectionStatus } from "./ui";
 
 function getMessageText(message: UIMessage): string {
   return message.parts
@@ -280,9 +275,6 @@ function Chat() {
             />
           </div>
         </form>
-        <div className="flex justify-center pb-3">
-          <PoweredByAgents />
-        </div>
       </div>
     </div>
   );
